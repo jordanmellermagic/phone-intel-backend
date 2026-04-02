@@ -32,8 +32,14 @@ async def searchbug_lookup(phone_digits: str) -> dict | None:
         "LIMIT":   "1",
     }
 
+    # Must send as URL-encoded string (not multipart form-data) to match what works in Swift
+    encoded = "&".join(f"{k}={v}" for k, v in payload.items())
     async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
-        resp = await client.post(url, data=payload)
+        resp = await client.post(
+            url,
+            content=encoded.encode("utf-8"),
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
 
     print(f"[Searchbug] status={resp.status_code} body={resp.text[:400]}")
 
